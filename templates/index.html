@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+    <title>Quizify</title>
+    <link rel="icon" type="image/png" href="https://remove.photos/cache/images/users/bab9af94-2594-455e-bdb1-7a0cbe75aabf/recommend-optimized.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap');
+        body {
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 0;
+        }
+        .container {
+            max-width: 520px;
+            width: 100%;
+            background: rgba(255,255,255,0.98);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(79, 172, 254, 0.13), 0 2px 8px rgba(79, 172, 254, 0.08);
+            padding: 48px 40px 40px 40px;
+            margin: 0 auto;
+            color: #222;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(200,200,200,0.10);
+            position: relative;
+        }
+        h1 {
+            color: #4facfe;
+            font-size: 2.3em;
+            font-weight: 700;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        
+        .upload-icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            color: #4facfe;
+        }
+        .upload-text {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .upload-subtext {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        input[type="submit"] {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 0;
+            border-radius: 50px;
+            font-size: 1.13rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 24px 0 0 0;
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.13);
+            display: block;
+        }
+        input[type="submit"]:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            box-shadow: 0 12px 30px rgba(79, 172, 254, 0.18);
+        }
+        .error-message {
+            color: #fff;
+            background: #e94560;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-size: 1.1em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quizify</h1>
+        <div id="errorMsg" class="error-message"></div>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <label for="pdfFile" class="upload-area">
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">Drop your PDF here or click to select</div>
+                <div class="upload-subtext">Supports PDF files up to 5MB</div>
+            </label>
+            <input type="file" name="pdfFile" id="pdfFile" accept=".pdf" required>
+            <input type="submit" value="Create Quiz">
+        </form>
+    </div>
+    <script>
+        const fileInput = document.getElementById('pdfFile');
+        const uploadArea = document.querySelector('.upload-area');
+        const uploadText = document.querySelector('.upload-text');
+        const uploadForm = document.getElementById('uploadForm');
+        const errorMsg = document.getElementById('errorMsg');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            // Hide default drag image
+            if (e.dataTransfer) {
+                var img = new Image();
+                img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=";
+                e.dataTransfer.setDragImage(img, 0, 0);
+            }
+            uploadArea.style.borderColor = '#00f2fe';
+            uploadArea.style.background = 'linear-gradient(45deg, #e8f4fd 0%, #d1ecf1 100%)';
+        });
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#4facfe';
+            uploadArea.style.background = 'linear-gradient(45deg, #f8f9ff 0%, #e8f4fd 100%)';
+        });
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#4facfe';
+            uploadArea.style.background = 'linear-gradient(45deg, #f8f9ff 0%, #e8f4fd 100%)';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                uploadText.textContent = `Selected: ${files[0].name}`;
+                errorMsg.style.display = 'none';
+            }
+        });
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                uploadText.textContent = `Selected: ${this.files[0].name}`;
+                errorMsg.style.display = 'none';
+            } else {
+                uploadText.textContent = 'Drop your PDF here or click to select';
+            }
+        });
+        uploadForm.addEventListener('submit', function(e) {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                e.preventDefault();
+                errorMsg.textContent = 'Please select a PDF file before creating a quiz!';
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 
